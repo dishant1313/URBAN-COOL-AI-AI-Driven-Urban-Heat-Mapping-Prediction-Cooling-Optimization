@@ -9,7 +9,7 @@ interface NavbarProps {
   setActiveTab?: (tab: string) => void;
 }
 
-export default function Navbar({ backendConnected = true, isConnected = true }: NavbarProps) {
+export default function Navbar({ backendConnected = true, isConnected = true, activeTab = 'overview', setActiveTab }: NavbarProps) {
   const connected = backendConnected && isConnected;
 
   return (
@@ -28,32 +28,73 @@ export default function Navbar({ backendConnected = true, isConnected = true }: 
                 <h1 className="text-xl font-bold bg-gradient-to-r from-slate-100 via-teal-200 to-emerald-400 bg-clip-text text-transparent tracking-tight">
                   URBAN-COOL AI
                 </h1>
-                <span className="px-2 py-0.5 text-[10px] font-semibold bg-teal-950 text-teal-300 border border-teal-800/60 rounded-full">
-                  PHASE 1
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800/60 rounded-full">
+                  PHASE 4+5: SCENARIOS ACTIVE
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
-                Geospatial AI for Urban Heat Resilience & Processing Pipeline
+                Predictive Urban Heat AI & Cooling Intervention Simulator
               </p>
             </div>
           </div>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center space-x-1 text-xs text-slate-300">
-            <button className="px-3 py-1.5 rounded-lg bg-teal-950/80 text-teal-300 border border-teal-800/80 font-medium">
+            <button
+              onClick={() => setActiveTab && setActiveTab('overview')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition ${
+                activeTab === 'overview'
+                  ? 'bg-teal-950/80 text-teal-300 border border-teal-800/80'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
               Overview
             </button>
-            <button className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">
+            <button
+              onClick={() => setActiveTab && setActiveTab('heatmap')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition ${
+                activeTab === 'heatmap'
+                  ? 'bg-teal-950/80 text-teal-300 border border-teal-800/80'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
               Heat Map
             </button>
-            <button className="px-3 py-1.5 rounded-lg text-slate-400 flex items-center gap-1">
-              Heat Drivers <span className="text-[9px] px-1 bg-slate-800 rounded">Phase 2</span>
+            <button
+              onClick={() => setActiveTab && setActiveTab('drivers')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
+                activeTab === 'drivers'
+                  ? 'bg-teal-950/80 text-teal-300 border border-teal-800/80'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Heat Drivers <span className="text-[9px] px-1 bg-emerald-900/80 text-emerald-200 rounded font-semibold">Phase 3</span>
             </button>
-            <button className="px-3 py-1.5 rounded-lg text-slate-400 flex items-center gap-1">
-              Scenarios <span className="text-[9px] px-1 bg-slate-800 rounded">Phase 2</span>
+            <button
+              onClick={() => setActiveTab && setActiveTab('scenarios')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
+                activeTab === 'scenarios'
+                  ? 'bg-teal-950/80 text-teal-300 border border-teal-800/80'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Scenarios <span className="text-[9px] px-1 bg-cyan-900/80 text-cyan-200 rounded font-semibold">Active</span>
             </button>
-            <button className="px-3 py-1.5 rounded-lg text-slate-400 flex items-center gap-1">
-              Optimization <span className="text-[9px] px-1 bg-slate-800 rounded">Phase 3</span>
+            <button
+              className="px-3 py-1.5 rounded-lg text-slate-500 cursor-not-allowed flex items-center gap-1 opacity-70"
+              title="Cooling Optimization coming in Phase 7"
+            >
+              Optimization <span className="text-[9px] px-1 bg-slate-800/80 text-slate-400 rounded">Phase 7</span>
+            </button>
+            <button
+              onClick={() => setActiveTab && setActiveTab('about')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition ${
+                activeTab === 'about'
+                  ? 'bg-teal-950/80 text-teal-300 border border-teal-800/80'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              About
             </button>
           </nav>
 

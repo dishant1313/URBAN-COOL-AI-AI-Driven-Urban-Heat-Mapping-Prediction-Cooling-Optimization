@@ -10,6 +10,16 @@ export type MapLayerType =
   | 'hotspots'
   | 'hotspot_score'
   | 'thermal_stress_index'
+  | 'dominant_driver'
+  | 'predicted_lst'
+  | 'prediction_error'
+  | 'baseline_predicted_lst'
+  | 'scenario_predicted_lst'
+  | 'cooling_delta'
+  | 'shap_building_density'
+  | 'shap_ndvi'
+  | 'shap_ndbi'
+  | 'shap_air_temperature'
   | 'ndvi'
   | 'ndbi'
   | 'ndwi'
@@ -30,6 +40,33 @@ export interface GridCellProperties {
   thermal_stress_index?: number;
   hotspot_frequency?: number;
   persistence_class?: string;
+
+  // Phase 3 & 4 ML attributes
+  predicted_lst?: number;
+  prediction_error?: number;
+  absolute_error?: number;
+  prediction_uncertainty?: number;
+  dominant_driver?: string;
+  dominant_driver_label?: string;
+  dominant_driver_strength?: number;
+  shap_ndvi?: number;
+  shap_ndbi?: number;
+  shap_ndwi?: number;
+  shap_albedo?: number;
+  shap_air_temperature?: number;
+  shap_humidity?: number;
+  shap_wind_speed?: number;
+  shap_building_density?: number;
+  shap_road_density?: number;
+  shap_green_fraction?: number;
+
+  // Phase 5 Scenario attributes
+  baseline_predicted_lst?: number;
+  scenario_predicted_lst?: number;
+  cooling_delta?: number;
+  intervention_impact?: string;
+  cell_suitable?: boolean;
+
   ndvi: number;
   ndbi: number;
   ndwi: number;
@@ -133,4 +170,73 @@ export interface PipelineMetadataReport {
   spatial_parameters?: Record<string, any>;
   temporal_metadata?: Record<string, any>;
   disclaimer?: string;
+}
+
+// Phase 3 & 4 Specific Interfaces
+export interface ModelMetrics {
+  random_cv_r2: number;
+  random_cv_rmse: number;
+  random_cv_mae: number;
+  spatial_cv_r2: number;
+  spatial_cv_rmse: number;
+  spatial_cv_mae: number;
+  spatial_cv_method: string;
+}
+
+export interface ModelPerformanceComparison {
+  best_model: string;
+  performance_table: Record<string, ModelMetrics>;
+  disclaimer: string;
+}
+
+export interface DriverStatisticsReport {
+  pipeline_phase: string;
+  best_model: string;
+  model_performance: Record<string, ModelMetrics>;
+  features_used: string[];
+  target_variable: string;
+  global_feature_importance: Record<string, number>;
+  correlation_with_lst: Record<string, number>;
+  dominant_driver_distribution: Record<string, number>;
+  disclaimer: string;
+}
+
+// Phase 5 Scenario Interfaces
+export interface InterventionTypeConfig {
+  code: string;
+  name: string;
+  description: string;
+  affected_features: string[];
+  min_intensity: number;
+  max_intensity: number;
+  default_intensity: number;
+}
+
+export interface ScenarioInterventionSpec {
+  type: string;
+  intensity: number;
+}
+
+export interface ScenarioResultSummary {
+  scenario_id: string;
+  pipeline_phase: string;
+  interventions_applied: ScenarioInterventionSpec[];
+  sample_size: number;
+  affected_cells: number;
+  affected_area_km2: number;
+  mean_baseline_lst: number;
+  mean_scenario_lst: number;
+  mean_cooling_celsius: number;
+  maximum_cooling_celsius: number;
+  high_heat_area_before_km2: number;
+  high_heat_area_after_km2: number;
+  high_heat_area_reduction_km2: number;
+  extrapolation_warning: boolean;
+  out_of_distribution_details: string[];
+  disclaimer: string;
+}
+
+export interface ScenarioSimulationResult {
+  summary: ScenarioResultSummary;
+  geojson: FeatureCollection;
 }

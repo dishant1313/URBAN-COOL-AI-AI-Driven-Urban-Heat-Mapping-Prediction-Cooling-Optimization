@@ -81,6 +81,42 @@ export default function MapView({
       else if (tsi >= 0.55) color = '#f97316';
       else if (tsi >= 0.35) color = '#eab308';
       else color = '#10b981';
+    } else if (activeLayer === 'dominant_driver') {
+      const driver = props.dominant_driver || 'building_density';
+      if (driver === 'building_density') color = '#dc2626';     // Red for Building Density
+      else if (driver === 'ndbi') color = '#ea580c';            // Orange for Built-up NDBI
+      else if (driver === 'ndvi' || driver === 'green_fraction') color = '#16a34a'; // Green for Vegetation
+      else if (driver === 'air_temperature') color = '#eab308'; // Yellow for Atmospheric Air Temp
+      else if (driver === 'wind_speed') color = '#06b6d4';      // Cyan for Wind Speed
+      else if (driver === 'road_density') color = '#9333ea';    // Purple for Road Density
+      else color = '#3b82f6';                                   // Blue for Water/Other
+    } else if (activeLayer === 'cooling_delta') {
+      const delta = typeof props.cooling_delta === 'number' ? props.cooling_delta : 0.0;
+      if (delta >= 2.5) color = '#1e3a8a';       // Dark Blue (Major Cooling > 2.5°C)
+      else if (delta >= 1.5) color = '#2563eb';  // Blue (Strong Cooling > 1.5°C)
+      else if (delta >= 0.5) color = '#38bdf8';  // Light Blue (Moderate Cooling > 0.5°C)
+      else if (delta > -0.1) color = '#fef08a';  // Soft Yellow (Neutral / No Change)
+      else color = '#ef4444';                    // Red (Warming Delta)
+    } else if (activeLayer === 'baseline_predicted_lst' || activeLayer === 'scenario_predicted_lst' || activeLayer === 'predicted_lst') {
+      const lstVal = typeof props[activeLayer] === 'number' ? (props[activeLayer] as number) : (props.lst ?? 38.0);
+      if (lstVal >= 42.0) color = '#7f1d1d';
+      else if (lstVal >= 40.0) color = '#b91c1c';
+      else if (lstVal >= 38.0) color = '#f97316';
+      else if (lstVal >= 36.0) color = '#eab308';
+      else color = '#10b981';
+    } else if (activeLayer === 'prediction_error') {
+      const err = typeof props.prediction_error === 'number' ? props.prediction_error : 0.0;
+      if (Math.abs(err) <= 0.1) color = '#10b981';      // Low error green
+      else if (Math.abs(err) <= 0.5) color = '#eab308'; // Medium error yellow
+      else color = '#ef4444';                           // High error red
+    } else if (activeLayer.startsWith('shap_')) {
+      const featureKey = activeLayer as keyof typeof props;
+      const val = typeof props[featureKey] === 'number' ? (props[featureKey] as number) : 0.0;
+      if (val >= 1.5) color = '#7f1d1d';
+      else if (val >= 0.5) color = '#ef4444';
+      else if (val >= 0.0) color = '#fde047';
+      else if (val >= -0.5) color = '#38bdf8';
+      else color = '#1d4ed8';
     } else if (activeLayer === 'ndvi') {
       const ndvi = props.ndvi ?? 0.2;
       if (ndvi >= 0.45) color = '#15803d';
@@ -265,6 +301,32 @@ export default function MapView({
             <span>Low Stress</span>
             <div className="w-24 h-2 rounded bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-700" />
             <span>Severe Stress</span>
+          </div>
+        )}
+
+        {activeLayer === 'dominant_driver' && (
+          <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px]">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-600"></span> Building Density</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Built-up NDBI</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span> Atmospheric Temp</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-600"></span> Vegetation Canopy</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Wind Speed</span>
+          </div>
+        )}
+
+        {activeLayer === 'cooling_delta' && (
+          <div className="flex items-center gap-2 mt-1 text-[11px]">
+            <span>Warming (&lt;0°C)</span>
+            <div className="w-28 h-2.5 rounded bg-gradient-to-r from-red-500 via-yellow-200 via-sky-400 to-blue-900" />
+            <span>High Cooling (&gt;2.5°C)</span>
+          </div>
+        )}
+
+        {activeLayer.startsWith('shap_') && (
+          <div className="flex items-center gap-2 mt-1 text-[11px]">
+            <span>Cooling Effect (&lt;0 SHAP)</span>
+            <div className="w-24 h-2 rounded bg-gradient-to-r from-blue-600 via-yellow-300 to-red-800" />
+            <span>Warming Effect (&gt;0 SHAP)</span>
           </div>
         )}
 

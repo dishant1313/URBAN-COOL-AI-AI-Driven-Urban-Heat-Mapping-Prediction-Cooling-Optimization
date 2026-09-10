@@ -1,0 +1,135 @@
+{
+  "pipeline_phase": "Phase 4 Predictive Urban Heat AI",
+  "best_model": "Linear Regression",
+  "features_used": [
+    "ndvi",
+    "ndbi",
+    "ndwi",
+    "albedo",
+    "air_temperature",
+    "humidity",
+    "wind_speed",
+    "building_density",
+    "road_density",
+    "green_fraction",
+    "lulc"
+  ],
+  "continuous_features": [
+    "ndvi",
+    "ndbi",
+    "ndwi",
+    "albedo",
+    "air_temperature",
+    "humidity",
+    "wind_speed",
+    "building_density",
+    "road_density",
+    "green_fraction"
+  ],
+  "categorical_features": [
+    "lulc"
+  ],
+  "feature_bounds": {
+    "ndvi": {
+      "min": -0.005,
+      "max": 0.503,
+      "mean": 0.24904497354497357,
+      "std": 0.07920788770837528
+    },
+    "ndbi": {
+      "min": -0.073,
+      "max": 0.484,
+      "mean": 0.1851630291005291,
+      "std": 0.09229815955323703
+    },
+    "ndwi": {
+      "min": -0.4,
+      "max": -0.239,
+      "mean": -0.3857291666666666,
+      "std": 0.02730944679145981
+    },
+    "albedo": {
+      "min": 0.12,
+      "max": 0.286,
+      "mean": 0.2070760582010582,
+      "std": 0.022555877662814337
+    },
+    "air_temperature": {
+      "min": 32.19,
+      "max": 40.41,
+      "mean": 36.49742724867725,
+      "std": 1.3873244744774709
+    },
+    "humidity": {
+      "min": 36.0,
+      "max": 52.0,
+      "mean": 44.150429894179894,
+      "std": 2.1745528124690052
+    },
+    "wind_speed": {
+      "min": 1.57,
+      "max": 3.72,
+      "mean": 2.659821428571428,
+      "std": 0.35383270957007795
+    },
+    "building_density": {
+      "min": 0.156,
+      "max": 0.88,
+      "mean": 0.5371421957671958,
+      "std": 0.12725369450071802
+    },
+    "road_density": {
+      "min": 0.075,
+      "max": 0.7,
+      "mean": 0.40223148148148147,
+      "std": 0.10463620003411604
+    },
+    "green_fraction": {
+      "min": 0.02,
+      "max": 0.686,
+      "mean": 0.24700694444444446,
+      "std": 0.15286953876738466
+    }
+  },
+  "model_performance": {
+    "Linear Regression": {
+      "random_cv_r2": 0.9996,
+      "random_cv_rmse": 0.0402,
+      "random_cv_mae": 0.0318,
+      "spatial_cv_r2": 0.9995,
+      "spatial_cv_rmse": 0.0414,
+      "spatial_cv_mae": 0.0328,
+      "spatial_cv_method": "3x3 Spatial Grid Blocks"
+    },
+    "Random Forest": {
+      "random_cv_r2": 0.9999,
+      "random_cv_rmse": 0.0189,
+      "random_cv_mae": 0.0145,
+      "spatial_cv_r2": 0.9987,
+      "spatial_cv_rmse": 0.069,
+      "spatial_cv_mae": 0.0414,
+      "spatial_cv_method": "3x3 Spatial Grid Blocks"
+    },
+    "MLP Neural Network": {
+      "random_cv_r2": 0.9984,
+      "random_cv_rmse": 0.0781,
+      "random_cv_mae": 0.0584,
+      "spatial_cv_r2": 0.9959,
+      "spatial_cv_rmse": 0.1242,
+      "spatial_cv_mae": 0.0855,
+      "spatial_cv_method": "3x3 Spatial Grid Blocks"
+    },
+    "XGBoost": {
+      "random_cv_r2": 0.9997,
+      "random_cv_rmse": 0.0354,
+      "random_cv_mae": 0.0281,
+      "spatial_cv_r2": 0.998,
+      "spatial_cv_rmse": 0.086,
+      "spatial_cv_mae": 0.045,
+      "spatial_cv_method": "3x3 Spatial Grid Blocks"
+    }
+  },
+  "target_variable": "lst",
+  "model_version": "v4.1.0",
+  "disclaimer": "Model predictions represent statistical surface temperature estimates based on satellite microclimate inputs."
+}

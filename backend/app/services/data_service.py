@@ -13,8 +13,14 @@ class DataService:
         if master_geojson_path:
             self.geojson_path = Path(master_geojson_path)
         else:
+            p4_path = base_dir / "data" / "processed" / "phase4_predictions.geojson"
+            p3_path = base_dir / "data" / "processed" / "phase3_driver_analysis.geojson"
             p2_path = base_dir / "data" / "processed" / "phase2_heat_analysis.geojson"
-            if p2_path.exists():
+            if p4_path.exists():
+                self.geojson_path = p4_path
+            elif p3_path.exists():
+                self.geojson_path = p3_path
+            elif p2_path.exists():
                 self.geojson_path = p2_path
             else:
                 self.geojson_path = base_dir / "data" / "processed" / "pune_master_100m.geojson"

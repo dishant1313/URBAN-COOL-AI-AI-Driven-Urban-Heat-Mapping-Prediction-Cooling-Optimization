@@ -1,0 +1,78 @@
+{
+  "pipeline_phase": "Phase 3 Urban Heat Driver Analysis & Explainable AI",
+  "best_model": "Linear Regression",
+  "model_performance": {
+    "Linear Regression": {
+      "random_cv_r2": 0.9996,
+      "random_cv_rmse": 0.0396,
+      "random_cv_mae": 0.0313,
+      "spatial_cv_r2": 0.9987,
+      "spatial_cv_rmse": 0.0413,
+      "spatial_cv_mae": 0.0328,
+      "spatial_cv_method": "3x3 Spatial Grid Blocks"
+    },
+    "Random Forest": {
+      "random_cv_r2": 0.9994,
+      "random_cv_rmse": 0.0473,
+      "random_cv_mae": 0.0363,
+      "spatial_cv_r2": 0.9966,
+      "spatial_cv_rmse": 0.0615,
+      "spatial_cv_mae": 0.0415,
+      "spatial_cv_method": "3x3 Spatial Grid Blocks"
+    },
+    "XGBoost": {
+      "random_cv_r2": 0.9994,
+      "random_cv_rmse": 0.0469,
+      "random_cv_mae": 0.0362,
+      "spatial_cv_r2": 0.9947,
+      "spatial_cv_rmse": 0.0707,
+      "spatial_cv_mae": 0.0451,
+      "spatial_cv_method": "3x3 Spatial Grid Blocks"
+    }
+  },
+  "features_used": [
+    "ndvi",
+    "ndbi",
+    "ndwi",
+    "albedo",
+    "air_temperature",
+    "humidity",
+    "wind_speed",
+    "building_density",
+    "road_density",
+    "green_fraction",
+    "lulc"
+  ],
+  "target_variable": "lst",
+  "global_feature_importance": {
+    "building_density": 95.85,
+    "wind_speed": 1.7,
+    "air_temperature": 0.88,
+    "green_fraction": 0.48,
+    "lulc_Built-up": 0.36,
+    "lulc_Vegetation": 0.36,
+    "ndbi": 0.25,
+    "albedo": 0.04,
+    "ndvi": 0.02,
+    "road_density": 0.02,
+    "ndwi": 0.01,
+    "humidity": 0.01
+  },
+  "correlation_with_lst": {
+    "ndvi": -0.861,
+    "ndbi": 0.943,
+    "ndwi": -0.45,
+    "albedo": -0.705,
+    "air_temperature": 0.976,
+    "humidity": -0.719,
+    "wind_speed": -0.766,
+    "building_density": 1.0,
+    "road_density": 0.918,
+    "green_fraction": -0.962
+  },
+  "dominant_driver_distribution": {
+    "Building Footprint Density": 3015,
+    "Wind Speed": 9
+  },
+  "disclaimer": "These are model-based explanations and should not be interpreted as direct physical causal estimates."
+}

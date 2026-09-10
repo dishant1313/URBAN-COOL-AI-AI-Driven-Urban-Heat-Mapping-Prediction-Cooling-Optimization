@@ -12,7 +12,7 @@ export default function CellDetailsCard({ selectedCell }: CellDetailsCardProps) 
     return (
       <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 backdrop-blur-md shadow-xl text-slate-400">
         <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-2">Selected Location Inspector</h3>
-        <p className="text-xs text-slate-400">Click on any 100m grid cell on the map to explore microclimate thermal indicators, hotspot stats, and urban morphology.</p>
+        <p className="text-xs text-slate-400">Click on any 100m grid cell on the map to explore microclimate thermal indicators, hotspot stats, and urban heat driver explanations.</p>
       </div>
     );
   }
@@ -22,6 +22,14 @@ export default function CellDetailsCard({ selectedCell }: CellDetailsCardProps) 
   const zscoreStr = p.lst_zscore !== undefined ? `${p.lst_zscore}` : 'N/A';
   const hotspotSigStr = p.hotspot_significance || p.hotspot_class || 'Not Significant';
   const hotspotScoreStr = p.hotspot_score !== undefined ? `${p.hotspot_score}` : 'N/A';
+
+  // Extract SHAP drivers if available
+  const topDrivers = [
+    { name: 'Building Density', shap: p.shap_building_density, raw: `${Math.round((p.building_density || 0) * 100)}%` },
+    { name: 'Vegetation (NDVI)', shap: p.shap_ndvi, raw: `${p.ndvi}` },
+    { name: 'Built-up (NDBI)', shap: p.shap_ndbi, raw: `${p.ndbi}` },
+    { name: 'Air Temp', shap: p.shap_air_temperature, raw: `${p.air_temperature}°C` },
+  ].filter(d => d.shap !== undefined).sort((a, b) => Math.abs(b.shap || 0) - Math.abs(a.shap || 0));
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 backdrop-blur-md shadow-2xl text-slate-200">
@@ -51,14 +59,14 @@ export default function CellDetailsCard({ selectedCell }: CellDetailsCardProps) 
         </div>
       </div>
 
-      {/* Section 18: Primary Hotspot Detail Panel */}
+      {/* Primary Thermal Diagnostics */}
       <div className="bg-slate-950/80 rounded-xl p-4 border border-slate-800/80 mb-4 shadow-inner">
         <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400 mb-3 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Thermal & Hotspot Diagnostics
+          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Thermal Condition
         </h4>
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
-            <span className="text-[10px] text-slate-400 uppercase font-semibold">LST</span>
+            <span className="text-[10px] text-slate-400 uppercase font-semibold">Observed LST</span>
             <div className="text-lg font-bold text-red-400 mt-0.5 font-mono">{p.lst} °C</div>
             <span className="text-[9px] text-slate-500">Landsat 8 TIRS</span>
           </div>
@@ -75,45 +83,57 @@ export default function CellDetailsCard({ selectedCell }: CellDetailsCardProps) 
             <span className="text-[9px] text-slate-500">Standardized</span>
           </div>
         </div>
-
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex justify-between items-center">
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-semibold block">Hotspot Score</span>
-              <span className="text-base font-bold text-cyan-300 font-mono">{hotspotScoreStr}</span>
-            </div>
-            <div className="text-[9px] text-slate-500 text-right">0.0 to 1.0 Scale</div>
-          </div>
-
-          <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex justify-between items-center">
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-semibold block">Thermal Stress Index</span>
-              <span className="text-base font-bold text-rose-300 font-mono">{p.thermal_stress_index ?? 'N/A'}</span>
-            </div>
-            <div className="text-[9px] text-slate-500 text-right">Prototype Index</div>
-          </div>
-        </div>
       </div>
 
-      {/* Satellite Spectral Indices */}
-      <div className="grid grid-cols-3 gap-2.5 mb-4">
-        <div className="bg-slate-950/50 p-2 rounded-lg border border-slate-800 text-center">
-          <span className="text-[10px] text-slate-400 uppercase font-semibold block">NDVI</span>
-          <span className="text-sm font-bold text-emerald-400 font-mono">{p.ndvi}</span>
+      {/* Phase 3 Model Explanation & SHAP Local Drivers */}
+      <div className="bg-slate-950/90 rounded-xl p-4 border border-emerald-800/60 mb-4 shadow-xl">
+        <div className="flex justify-between items-center mb-2.5">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <span>🧠 Model Explanation (Phase 3)</span>
+          </h4>
+          {p.dominant_driver_label && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+              Dominant: {p.dominant_driver_label}
+            </span>
+          )}
         </div>
-        <div className="bg-slate-950/50 p-2 rounded-lg border border-slate-800 text-center">
-          <span className="text-[10px] text-slate-400 uppercase font-semibold block">NDBI</span>
-          <span className="text-sm font-bold text-amber-400 font-mono">{p.ndbi}</span>
+
+        <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
+          <div className="bg-slate-900/90 p-2 rounded-lg border border-slate-800 flex justify-between">
+            <span className="text-slate-400">Predicted LST:</span>
+            <span className="font-mono text-emerald-300 font-bold">{p.predicted_lst ? `${p.predicted_lst}°C` : `${p.lst}°C`}</span>
+          </div>
+          <div className="bg-slate-900/90 p-2 rounded-lg border border-slate-800 flex justify-between">
+            <span className="text-slate-400">Prediction Error:</span>
+            <span className="font-mono text-slate-300">{p.prediction_error !== undefined ? `${p.prediction_error}°C` : '0.00°C'}</span>
+          </div>
         </div>
-        <div className="bg-slate-950/50 p-2 rounded-lg border border-slate-800 text-center">
-          <span className="text-[10px] text-slate-400 uppercase font-semibold block">NDWI</span>
-          <span className="text-sm font-bold text-sky-400 font-mono">{p.ndwi}</span>
+
+        <div className="space-y-1.5 text-xs">
+          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block mb-1">Top Contributing Factors (SHAP)</span>
+          {topDrivers.length > 0 ? (
+            topDrivers.slice(0, 3).map((driver, i) => (
+              <div key={i} className="flex justify-between items-center p-2 rounded bg-slate-900/80 border border-slate-800 text-[11px]">
+                <span className="text-slate-300 font-medium">{i + 1}. {driver.name} ({driver.raw})</span>
+                <span className={`font-mono font-bold ${driver.shap && driver.shap > 0 ? 'text-red-400' : 'text-teal-400'}`}>
+                  {driver.shap && driver.shap > 0 ? `+${driver.shap}°C` : `${driver.shap}°C`}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="text-[11px] text-slate-400 italic">Top drivers calculated via SHAP model explainer.</div>
+          )}
         </div>
+
+        {/* Mandatory Phase 3 Disclaimer */}
+        <p className="mt-3 text-[10px] text-amber-300/80 bg-amber-950/40 p-2 rounded border border-amber-800/40 italic">
+          "These are model-based explanations and should not be interpreted as direct causal estimates."
+        </p>
       </div>
 
       {/* Urban Morphology Metrics */}
-      <div className="mb-4 pt-2 border-t border-slate-800/80">
-        <h4 className="text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2">Urban Morphology Indicators</h4>
+      <div className="pt-2 border-t border-slate-800/80">
+        <h4 className="text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2">Urban Indicators</h4>
         <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
           <div className="flex justify-between border-b border-slate-800/50 pb-1">
             <span className="text-slate-400">Building Density:</span>
@@ -124,20 +144,14 @@ export default function CellDetailsCard({ selectedCell }: CellDetailsCardProps) 
             <span className="font-mono text-purple-300">{Math.round((p.road_density || 0) * 100)}%</span>
           </div>
           <div className="flex justify-between border-b border-slate-800/50 pb-1">
-            <span className="text-slate-400">Building Count:</span>
-            <span className="font-mono text-slate-200">{p.building_count || 0}</span>
+            <span className="text-slate-400">NDVI Vegetation:</span>
+            <span className="font-mono text-emerald-300">{p.ndvi}</span>
           </div>
           <div className="flex justify-between border-b border-slate-800/50 pb-1">
-            <span className="text-slate-400">Green Fraction:</span>
-            <span className="font-mono text-emerald-300">{Math.round((p.green_fraction || 0) * 100)}%</span>
+            <span className="text-slate-400">NDBI Built-up:</span>
+            <span className="font-mono text-amber-300">{p.ndbi}</span>
           </div>
         </div>
-      </div>
-
-      {/* Requirement 18: Mandatory Phase 3 Notice Banner */}
-      <div className="mt-3 p-2.5 rounded-lg bg-blue-950/40 border border-blue-800/60 text-xs text-blue-300 flex items-center gap-2">
-        <span className="text-base">ℹ️</span>
-        <span className="italic">Driver analysis will be available in Phase 3.</span>
       </div>
     </div>
   );
