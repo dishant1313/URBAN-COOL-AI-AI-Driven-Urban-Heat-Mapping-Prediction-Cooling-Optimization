@@ -1,0 +1,61 @@
+{
+  "dataset_metadata": {
+    "city": "Pune",
+    "grid_resolution_m": 100,
+    "total_grid_cells": 3024,
+    "crs": "EPSG:4326",
+    "projected_crs": "EPSG:32643",
+    "temporal_range": {
+      "start_date": "2026-03-01",
+      "end_date": "2026-05-31"
+    },
+    "remote_sensing_lineage": {
+      "thermal_sensor": "Landsat 8/9 TIRS (Band ST_B10)",
+      "thermal_formula": "LST (\u00b0C) = (ST_B10 * 0.00341802 + 149.0) - 273.15",
+      "vegetation_sensor": "Sentinel-2 MSI / Landsat 8 SR",
+      "ndvi_formula": "(NIR - RED) / (NIR + RED)",
+      "ndbi_formula": "(SWIR1 - NIR) / (SWIR1 + NIR)",
+      "ndwi_formula": "(GREEN - NIR) / (GREEN + NIR)",
+      "lulc_dataset": "Google Dynamic World V1 / ESA WorldCover 10m",
+      "albedo_formula": "Albedo Proxy = 0.356*B2 + 0.130*B4 + 0.373*B5 + 0.085*B6 + 0.072*B7 - 0.0018",
+      "meteorology_source": "ERA5 Daily Reanalysis (2m Air Temp, Dewpoint, Wind Speed)",
+      "temporal_range": {
+        "start_date": "2026-03-01",
+        "end_date": "2026-05-31"
+      },
+      "spatial_resolution_m": 100,
+      "cloud_cover_filter": "<15.0%"
+    },
+    "osm_lineage": {
+      "source": "OpenStreetMap Contributors",
+      "extracted_features": [
+        "buildings",
+        "highways",
+        "parks_greenery"
+      ]
+    }
+  },
+  "validation_summary": {
+    "status": "PASSED",
+    "total_grid_cells": 3024,
+    "valid_geometries": 3024,
+    "duplicate_grid_ids": 0,
+    "crs": "EPSG:4326",
+    "is_crs_wgs84": true,
+    "coverage_percentages": {
+      "lst_coverage_pct": 100.0,
+      "ndvi_coverage_pct": 100.0,
+      "ndbi_coverage_pct": 100.0,
+      "ndwi_coverage_pct": 100.0,
+      "osm_building_coverage_pct": 100.0,
+      "osm_road_coverage_pct": 100.0,
+      "meteorological_coverage_pct": 100.0
+    },
+    "anomalies_detected": []
+  },
+  "exported_files": {
+    "geojson": "D:\\TY_Semester_5_Projects\\URBAN-COOL AI-Driven Urban Heat Mapping, Prediction  Cooling Optimization\\data\\processed\\pune_master_100m.geojson",
+    "geoparquet": "D:\\TY_Semester_5_Projects\\URBAN-COOL AI-Driven Urban Heat Mapping, Prediction  Cooling Optimization\\data\\processed\\pune_master_100m.parquet",
+    "csv": "D:\\TY_Semester_5_Projects\\URBAN-COOL AI-Driven Urban Heat Mapping, Prediction  Cooling Optimization\\data\\processed\\pune_master_100m.csv"
+  }
+}
