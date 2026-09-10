@@ -13,7 +13,11 @@ class DataService:
         if master_geojson_path:
             self.geojson_path = Path(master_geojson_path)
         else:
-            self.geojson_path = base_dir / "data" / "processed" / "pune_master_100m.geojson"
+            p2_path = base_dir / "data" / "processed" / "phase2_heat_analysis.geojson"
+            if p2_path.exists():
+                self.geojson_path = p2_path
+            else:
+                self.geojson_path = base_dir / "data" / "processed" / "pune_master_100m.geojson"
         
         self.validation_report_path = base_dir / "data" / "processed" / "validation_report.json"
         self._cached_gdf: Optional[gpd.GeoDataFrame] = None

@@ -8,7 +8,6 @@ interface MapViewProps {
   activeLayer: MapLayerType;
   onSelectCell: (cell: GridCellFeature | null) => void;
   selectedCellId?: string | null;
-  showHotspotPreview?: boolean;
 }
 
 export default function MapView({
@@ -16,69 +15,103 @@ export default function MapView({
   activeLayer,
   onSelectCell,
   selectedCellId,
-  showHotspotPreview = false,
 }: MapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const geoJsonLayerRef = useRef<any>(null);
 
-  // Layer color palette calculator
+  // Dynamic cell color calculator adhering to Phase 2 specs
   const getCellStyle = (feature: any) => {
     const props = feature.properties;
-    let color = '#3b82f6'; // default blue
-    let opacity = 0.65;
+    let color = '#3b82f6';
+    let opacity = 0.70;
 
-    // Check if cell is selected
     const isSelected = props.grid_id === selectedCellId;
 
     if (activeLayer === 'lst') {
-      const lst = props.lst || 35.0;
-      if (lst >= 41.0) color = '#ef4444';      // Extreme (Red)
-      else if (lst >= 37.5) color = '#f97316'; // High (Orange)
-      else if (lst >= 34.0) color = '#eab308'; // Medium (Yellow)
-      else color = '#22c55e';                 // Low (Green)
+      const lst = props.lst ?? 35.0;
+      if (lst >= 41.5) color = '#7f1d1d';      // Deep Red
+      else if (lst >= 39.5) color = '#ef4444'; // Red
+      else if (lst >= 37.5) color = '#f97316'; // Orange
+      else if (lst >= 35.5) color = '#eab308'; // Yellow
+      else color = '#22c55e';                 // Green
+    } else if (activeLayer === 'lst_anomaly') {
+      const anomaly = props.lst_anomaly ?? (props.lst ? props.lst - 38.56 : 0);
+      if (anomaly >= 3.0) color = '#991b1b';       // Dark Red (> +3°C)
+      else if (anomaly >= 1.5) color = '#f97316';  // Orange (+1.5°C to +3°C)
+      else if (anomaly >= 0.0) color = '#fde047';  // Light Yellow (Above mean)
+      else if (anomaly >= -1.5) color = '#38bdf8'; // Sky Blue (Below mean)
+      else color = '#1d4ed8';                      // Dark Blue (< -1.5°C)
+    } else if (activeLayer === 'lst_zscore') {
+      const z = props.lst_zscore ?? 0;
+      if (z >= 2.0) color = '#7f1d1d';       // Severe Warm (+2 sigma)
+      else if (z >= 1.0) color = '#f97316';  // Moderate Warm (+1 sigma)
+      else if (z >= -1.0) color = '#94a3b8'; // Neutral (-1 to +1 sigma)
+      else color = '#2563eb';                // Cool (-1 sigma)
+    } else if (activeLayer === 'heat_risk') {
+      const risk = props.heat_risk || 'Moderate';
+      if (risk === 'Very High' || risk === 'Extreme') color = '#991b1b';
+      else if (risk === 'High') color = '#ef4444';
+      else if (risk === 'Moderate' || risk === 'Medium') color = '#f59e0b';
+      else if (risk === 'Low') color = '#84cc16';
+      else color = '#10b981'; // Very Low
+    } else if (activeLayer === 'hotspots') {
+      const hs = props.hotspot_class || 'Not Significant';
+      const sig = props.hotspot_significance || '';
+      if (hs === 'Hotspot') {
+        if (sig.includes('99%')) color = '#991b1b';
+        else if (sig.includes('95%')) color = '#dc2626';
+        else color = '#f97316';
+      } else if (hs === 'Coldspot') {
+        if (sig.includes('99%')) color = '#1e3a8a';
+        else color = '#2563eb';
+      } else {
+        color = '#475569'; // Not Significant
+      }
+    } else if (activeLayer === 'hotspot_score') {
+      const score = props.hotspot_score ?? 0.5;
+      if (score >= 0.8) color = '#991b1b';
+      else if (score >= 0.6) color = '#ea580c';
+      else if (score >= 0.4) color = '#eab308';
+      else if (score >= 0.2) color = '#06b6d4';
+      else color = '#3b82f6';
+    } else if (activeLayer === 'thermal_stress_index') {
+      const tsi = props.thermal_stress_index ?? 0.5;
+      if (tsi >= 0.75) color = '#b91c1c';
+      else if (tsi >= 0.55) color = '#f97316';
+      else if (tsi >= 0.35) color = '#eab308';
+      else color = '#10b981';
     } else if (activeLayer === 'ndvi') {
-      const ndvi = props.ndvi || 0.2;
-      if (ndvi >= 0.45) color = '#15803d';      // Dense Vegetation
+      const ndvi = props.ndvi ?? 0.2;
+      if (ndvi >= 0.45) color = '#15803d';
       else if (ndvi >= 0.30) color = '#22c55e';
       else if (ndvi >= 0.15) color = '#84cc16';
-      else color = '#d97706';                 // Low Vegetation
+      else color = '#d97706';
     } else if (activeLayer === 'ndbi') {
-      const ndbi = props.ndbi || 0.3;
-      if (ndbi >= 0.40) color = '#991b1b';      // High Built-up
+      const ndbi = props.ndbi ?? 0.3;
+      if (ndbi >= 0.40) color = '#991b1b';
       else if (ndbi >= 0.25) color = '#dc2626';
       else if (ndbi >= 0.10) color = '#f97316';
       else color = '#3b82f6';
-    } else if (activeLayer === 'ndwi') {
-      const ndwi = props.ndwi || -0.2;
-      if (ndwi >= 0.20) color = '#0284c7';      // Water body
-      else if (ndwi >= 0.0) color = '#38bdf8';
-      else color = '#64748b';
     } else if (activeLayer === 'building_density') {
-      const bldDensity = props.building_density || 0.4;
-      if (bldDensity >= 0.70) color = '#7f1d1d'; // Dense urban core
+      const bldDensity = props.building_density ?? 0.4;
+      if (bldDensity >= 0.70) color = '#7f1d1d';
       else if (bldDensity >= 0.50) color = '#b91c1c';
       else if (bldDensity >= 0.30) color = '#f97316';
       else color = '#fde047';
     } else if (activeLayer === 'road_density') {
-      const roadDensity = props.road_density || 0.3;
-      if (roadDensity >= 0.50) color = '#6b21a8'; // High transport corridor
+      const roadDensity = props.road_density ?? 0.3;
+      if (roadDensity >= 0.50) color = '#6b21a8';
       else if (roadDensity >= 0.35) color = '#9333ea';
       else if (roadDensity >= 0.20) color = '#a855f7';
       else color = '#cbd5e1';
-    }
-
-    // Preliminary Hotspot Overlay Highlight
-    if (showHotspotPreview && (props.lst >= 40.5 || props.heat_risk === 'Extreme')) {
-      color = '#ff0055';
-      opacity = 0.85;
     }
 
     return {
       fillColor: color,
       weight: isSelected ? 3 : 1,
       opacity: isSelected ? 1.0 : 0.8,
-      color: isSelected ? '#38bdf8' : '#1e293b',
+      color: isSelected ? '#38bdf8' : '#0f172a',
       fillOpacity: opacity,
     };
   };
@@ -86,9 +119,7 @@ export default function MapView({
   useEffect(() => {
     if (typeof window === 'undefined' || !mapContainerRef.current) return;
 
-    // Dynamically import Leaflet client-side
     import('leaflet').then((L) => {
-      // Fix default marker icon assets
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -105,7 +136,6 @@ export default function MapView({
 
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        // Standard OpenStreetMap tiles
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors',
           maxZoom: 19,
@@ -116,7 +146,6 @@ export default function MapView({
 
       const map = mapInstanceRef.current;
 
-      // Clear previous GeoJSON layer
       if (geoJsonLayerRef.current) {
         map.removeLayer(geoJsonLayerRef.current);
       }
@@ -127,15 +156,23 @@ export default function MapView({
           onEachFeature: (feature, layer) => {
             const p = feature.properties;
             
-            // Build informative tooltip HTML
+            const anomalyStr = p.lst_anomaly !== undefined ? `${p.lst_anomaly > 0 ? '+' : ''}${p.lst_anomaly}°C` : 'N/A';
+            const zscoreStr = p.lst_zscore !== undefined ? `${p.lst_zscore}` : 'N/A';
+            const hotspotStr = p.hotspot_class || 'N/A';
+            const scoreStr = p.hotspot_score !== undefined ? `${p.hotspot_score}` : 'N/A';
+
             const tooltipContent = `
-              <div class="p-2 min-w-[170px] text-xs bg-slate-900 text-slate-100 rounded border border-slate-700 shadow-xl">
-                <div class="font-bold text-teal-400 mb-1 border-b border-slate-700 pb-1">${p.grid_id}</div>
-                <div class="flex justify-between py-0.5"><span>LST:</span> <span class="font-mono font-bold text-red-400">${p.lst}°C</span></div>
-                <div class="flex justify-between py-0.5"><span>NDVI:</span> <span class="font-mono text-emerald-400">${p.ndvi}</span></div>
-                <div class="flex justify-between py-0.5"><span>NDBI:</span> <span class="font-mono text-amber-400">${p.ndbi}</span></div>
-                <div class="flex justify-between py-0.5"><span>Bld Density:</span> <span class="font-mono text-cyan-300">${Math.round((p.building_density || 0) * 100)}%</span></div>
-                <div class="mt-1 pt-1 border-t border-slate-800 text-[10px] text-slate-400 capitalize">Risk: <strong class="${p.heat_risk === 'Extreme' ? 'text-red-400' : p.heat_risk === 'High' ? 'text-orange-400' : 'text-emerald-400'}">${p.heat_risk}</strong></div>
+              <div class="p-2.5 min-w-[200px] text-xs bg-slate-950 text-slate-100 rounded-lg border border-slate-700 shadow-2xl space-y-1">
+                <div class="font-bold text-teal-400 text-sm border-b border-slate-800 pb-1 flex justify-between">
+                  <span>${p.grid_id}</span>
+                  <span class="text-[10px] text-slate-400">100m Grid</span>
+                </div>
+                <div class="flex justify-between"><span>LST:</span> <span class="font-mono font-bold text-red-400">${p.lst}°C</span></div>
+                <div class="flex justify-between"><span>Anomaly:</span> <span class="font-mono text-orange-400">${anomalyStr}</span></div>
+                <div class="flex justify-between"><span>Z-Score:</span> <span class="font-mono text-amber-300">${zscoreStr}</span></div>
+                <div class="flex justify-between"><span>Heat Risk:</span> <span class="font-semibold text-rose-400">${p.heat_risk || 'N/A'}</span></div>
+                <div class="flex justify-between"><span>Hotspot:</span> <span class="font-semibold ${hotspotStr === 'Hotspot' ? 'text-red-400' : hotspotStr === 'Coldspot' ? 'text-blue-400' : 'text-slate-400'}">${hotspotStr}</span></div>
+                <div class="flex justify-between border-t border-slate-800 pt-1 text-[11px] text-slate-300"><span>Hotspot Score:</span> <span class="font-mono font-bold text-cyan-300">${scoreStr}</span></div>
               </div>
             `;
 
@@ -151,64 +188,94 @@ export default function MapView({
 
         geoJsonLayerRef.current = geoJsonLayer;
 
-        // Auto-fit map bounds if first load
         try {
-          map.fitBounds(geoJsonLayer.getBounds(), { padding: [30, 30] });
+          map.fitBounds(geoJsonLayer.getBounds(), { padding: [25, 25] });
         } catch {}
       }
     });
-
-    return () => {
-      // Keep map instance alive for smooth re-renders
-    };
-  }, [geoJsonData, activeLayer, selectedCellId, showHotspotPreview]);
+  }, [geoJsonData, activeLayer, selectedCellId]);
 
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden border border-slate-800 shadow-2xl">
-      <div ref={mapContainerRef} className="w-full h-full min-h-[520px] bg-slate-950" />
+      <div ref={mapContainerRef} className="w-full h-full min-h-[540px] bg-slate-950" />
 
-      {/* Layer Legend */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/90 backdrop-blur-md border border-slate-800 px-3 py-2 rounded-lg text-xs text-slate-300 shadow-lg">
-        <div className="font-semibold text-slate-200 mb-1 text-[11px] uppercase tracking-wider">
-          Legend ({activeLayer.toUpperCase()})
+      {/* Requirement 16: Detailed Map Legend with Labels & Tooltips */}
+      <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/95 backdrop-blur-md border border-slate-800 px-3.5 py-2.5 rounded-xl text-xs text-slate-300 shadow-2xl max-w-sm">
+        <div className="font-bold text-slate-200 mb-1 text-[11px] uppercase tracking-wider flex items-center justify-between border-b border-slate-800 pb-1">
+          <span>Legend — {activeLayer.replace('_', ' ').toUpperCase()}</span>
         </div>
+
         {activeLayer === 'lst' && (
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Low (&lt;34°C)</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span> Medium</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> High</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Extreme (&gt;41°C)</span>
+          <div className="flex flex-wrap items-center gap-2.5 mt-1 text-[11px]">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> &lt;35.5°C</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span> 35.5-37.5°C</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> 37.5-39.5°C</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> 39.5-41.5°C</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-900"></span> &gt;41.5°C</span>
           </div>
         )}
-        {activeLayer === 'ndvi' && (
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-600"></span> Low Vegetation (&lt;0.15)</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Medium</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-700"></span> Dense Canopy (&gt;0.45)</span>
+
+        {activeLayer === 'lst_anomaly' && (
+          <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px]">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-700"></span> &lt;-1.5°C</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Below Mean</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-300"></span> Above Mean</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> &gt;+1.5°C</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-900"></span> &gt;+3.0°C</span>
           </div>
         )}
-        {activeLayer === 'building_density' && (
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-300"></span> Low Density (&lt;30%)</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Moderate</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-800"></span> Core Density (&gt;70%)</span>
+
+        {activeLayer === 'lst_zscore' && (
+          <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px]">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span> Cool (&lt;-1σ)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Neutral (-1σ to +1σ)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Warm (+1σ to +2σ)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-900"></span> Severe (&gt;+2σ)</span>
           </div>
         )}
-        {(activeLayer === 'ndbi' || activeLayer === 'ndwi' || activeLayer === 'road_density') && (
-          <div className="flex items-center gap-2 text-slate-400">
-            <span>Low Value</span>
+
+        {activeLayer === 'heat_risk' && (
+          <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px]">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Very Low (&le;P20)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-lime-500"></span> Low</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Moderate</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> High</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-900"></span> Very High (&gt;P80)</span>
+          </div>
+        )}
+
+        {activeLayer === 'hotspots' && (
+          <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px]">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-600"></span> Hotspot (Gi* Z &gt; 1.645)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span> Coldspot (Gi* Z &lt; -1.645)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Not Significant</span>
+          </div>
+        )}
+
+        {activeLayer === 'hotspot_score' && (
+          <div className="flex items-center gap-2 mt-1 text-[11px]">
+            <span>0.0 (Cool)</span>
+            <div className="w-24 h-2 rounded bg-gradient-to-r from-blue-500 via-yellow-400 to-red-700" />
+            <span>1.0 (Intense Hotspot)</span>
+          </div>
+        )}
+
+        {activeLayer === 'thermal_stress_index' && (
+          <div className="flex items-center gap-2 mt-1 text-[11px]">
+            <span>Low Stress</span>
+            <div className="w-24 h-2 rounded bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-700" />
+            <span>Severe Stress</span>
+          </div>
+        )}
+
+        {(activeLayer === 'ndvi' || activeLayer === 'ndbi' || activeLayer === 'building_density' || activeLayer === 'road_density') && (
+          <div className="flex items-center gap-2 text-slate-400 mt-1">
+            <span>Low Indicator</span>
             <div className="w-20 h-2 rounded bg-gradient-to-r from-slate-700 via-blue-500 to-red-500" />
-            <span>High Value</span>
+            <span>High Indicator</span>
           </div>
         )}
       </div>
-
-      {/* Preliminary Hotspot Notice Badge */}
-      {showHotspotPreview && (
-        <div className="absolute top-4 left-4 z-[1000] bg-red-950/90 border border-red-700/80 px-3 py-1.5 rounded-lg text-xs text-red-200 shadow-xl backdrop-blur-md animate-pulse">
-          ⚡ Preliminary thermal visualization — hotspot analytics implemented in Phase 2
-        </div>
-      )}
     </div>
   );
 }

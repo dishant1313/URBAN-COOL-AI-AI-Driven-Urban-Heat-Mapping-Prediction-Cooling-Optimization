@@ -92,7 +92,7 @@ export default function PipelineMetadataModal({ isOpen, onClose, metadata }: Pip
               }).map(([key, value]) => (
                 <div key={key} className="flex justify-between items-center bg-slate-900/80 px-3 py-2 rounded-lg border border-slate-800">
                   <span className="text-slate-400 capitalize">{key.replace(/_/g, ' ')}:</span>
-                  <span className="font-mono font-bold text-emerald-400">{value}%</span>
+                  <span className="font-mono font-bold text-emerald-400">{String(value)}%</span>
                 </div>
               ))}
             </div>

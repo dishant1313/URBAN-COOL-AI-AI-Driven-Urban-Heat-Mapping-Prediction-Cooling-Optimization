@@ -1,0 +1,65 @@
+{
+  "pipeline_phase": "Phase 2 Urban Heat Hotspot Detection & Heat Stress Mapping",
+  "validation_summary": {
+    "total_cells": 3024,
+    "valid_cells": 3024,
+    "missing_lst": 0,
+    "min_lst": 32.75,
+    "max_lst": 44.0,
+    "mean_lst": 38.56,
+    "median_lst": 38.62,
+    "std_lst": 1.93
+  },
+  "lst_statistics": {
+    "min_lst": 32.75,
+    "max_lst": 44.0,
+    "mean_lst": 38.56,
+    "median_lst": 38.62,
+    "std_lst": 1.93,
+    "percentiles": {
+      "P10": 36.0,
+      "P25": 37.15,
+      "P50": 38.62,
+      "P75": 39.95,
+      "P90": 41.05,
+      "P95": 41.64
+    }
+  },
+  "max_anomaly_celsius": 5.44,
+  "hotspot_statistics": {
+    "hotspot_count": 940,
+    "coldspot_count": 881,
+    "not_significant_count": 1203,
+    "hotspot_area_km2": 9.4,
+    "high_risk_area_km2": 12.09,
+    "total_study_area_km2": 30.24
+  },
+  "risk_distribution": {
+    "Low": 613,
+    "High": 610,
+    "Very Low": 605,
+    "Very High": 599,
+    "Moderate": 597
+  },
+  "hotspot_distribution": {
+    "Not Significant": 1203,
+    "99% Confidence Hotspot": 586,
+    "99% Confidence Coldspot": 583,
+    "95% Confidence Hotspot": 230,
+    "95% Confidence Coldspot": 197,
+    "90% Confidence Hotspot": 124,
+    "90% Confidence Coldspot": 101
+  },
+  "spatial_parameters": {
+    "grid_resolution_m": 100,
+    "spatial_weights_method": "Distance-based Queen neighborhood",
+    "distance_threshold_m": 180.0,
+    "projected_crs": "EPSG:32643"
+  },
+  "temporal_metadata": {
+    "is_multi_date": false,
+    "message": "Temporal persistence analysis requires multi-date observations.",
+    "observation_dates_count": 1
+  },
+  "disclaimer": "Heat risk and hotspot scores represent relative spatial thermal intensity for the study area and period. Not a medical or official heat-health warning."
+}
